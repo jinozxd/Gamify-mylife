@@ -21,16 +21,19 @@ tựu. Tất cả dữ liệu được lưu **ngay trên trình duyệt** (local
 
 ## 🚀 Chạy thử
 
+### Cách 1 — Không cần cài gì (khuyên dùng nếu chưa có máy/dev tools)
+
+Mở thẳng file **[`gamify.html`](gamify.html)** bằng trình duyệt (nhấp đúp là chạy).
+Đây là bản port một-file, dùng JavaScript thuần, **không cần `npm`, không cần
+mạng, không cần server** — chạy offline hoàn toàn và vẫn lưu tiến trình trong
+localStorage của trình duyệt.
+
+### Cách 2 — Bản React (dành cho phát triển tiếp)
+
 ```bash
 npm install
 npm run dev      # mở http://localhost:5173
-```
-
-Build production:
-
-```bash
-npm run build
-npm run preview
+npm run build    # build production
 ```
 
 ## 🛠️ Công nghệ

@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gamify My Life — RPG Học Tập</title>
+<style>
+:root{
+  --bg:#0e0b1c;--bg-2:#15102b;--panel:#1b1538;--panel-2:#221a47;--border:#2e2657;
+  --text:#ece9ff;--muted:#9b93c7;--gold:#f5c518;--magic:#7c5cff;--magic-2:#a78bfa;
+  --danger:#ff5c7a;--accent:var(--magic);--radius:16px;--shadow:0 12px 30px rgba(0,0,0,.45);
+  font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:radial-gradient(1200px 700px at 80% -10%,#2a1d57 0,transparent 60%),
+    radial-gradient(900px 600px at -10% 110%,#1f2a5e 0,transparent 55%),var(--bg);
+  color:var(--text);-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0;font-family:'Trebuchet MS','Segoe UI',sans-serif;letter-spacing:.3px}
+.muted{color:var(--muted)}.tiny{font-size:12px}
+button{font-family:inherit;cursor:pointer}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.sidebar{background:linear-gradient(180deg,var(--bg-2),var(--bg));border-right:1px solid var(--border);
+  padding:22px 16px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:12px}
+.brand__star{font-size:26px;color:var(--gold);filter:drop-shadow(0 0 8px rgba(245,197,24,.6))}
+.brand__title{font-weight:800;font-size:17px}
+.brand__sub{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav__item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+  border:1px solid transparent;background:transparent;color:var(--muted);font-size:15px;
+  font-weight:600;text-align:left;transition:all .15s ease;width:100%}
+.nav__item:hover{background:var(--panel);color:var(--text)}
+.nav__item--active{background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(245,197,24,.12));
+  border-color:var(--magic);color:var(--text);box-shadow:inset 0 0 0 1px rgba(124,92,255,.25)}
+.nav__icon{font-size:18px}
+.sidebar__foot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.reset-link{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 10px;
+  border-radius:10px;font-size:13px}
+.reset-link:hover{color:var(--danger);border-color:var(--danger)}
+.content{padding:32px clamp(20px,4vw,48px);max-width:1100px;width:100%}
+.stack{display:flex;flex-direction:column;gap:24px}
+.panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.panel__head,.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.section-head{margin-bottom:20px}.section-head p{margin:4px 0 0}
+.btn{border:1px solid var(--border);background:var(--panel-2);color:var(--text);padding:10px 16px;
+  border-radius:11px;font-weight:700;font-size:14px;transition:transform .1s,box-shadow .15s,opacity .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn--sm{padding:6px 12px;font-size:13px}
+.btn--primary{background:linear-gradient(135deg,var(--magic),var(--magic-2));border-color:transparent;
+  box-shadow:0 6px 18px rgba(124,92,255,.4)}
+.btn--ghost{background:transparent}.back-btn{margin-bottom:14px}
+.icon-btn{background:transparent;border:none;color:var(--muted);font-size:16px;padding:6px;border-radius:8px;line-height:1}
+.icon-btn:hover{background:var(--panel);color:var(--text)}
+.icon-btn.danger:hover{color:var(--danger)}
+.progress{background:rgba(0,0,0,.35);border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.progress__fill{height:100%;border-radius:999px;transition:width .5s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 0 12px rgba(255,255,255,.2) inset}
+.hero-hub{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+.hero-hub__avatar{position:relative;width:120px;height:120px;border-radius:24px;
+  background:radial-gradient(circle at 50% 35%,#34286e,#1a1336);display:grid;place-items:center;
+  border:2px solid var(--magic);box-shadow:0 0 30px rgba(124,92,255,.4);flex-shrink:0}
+.hero-hub__avatar-emoji{font-size:60px}
+.hero-hub__level-badge{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--gold),#ffe07a);color:#2a1d00;font-weight:900;font-size:13px;
+  padding:4px 12px;border-radius:999px;box-shadow:0 4px 12px rgba(245,197,24,.5);white-space:nowrap}
+.hero-hub__body{flex:1;min-width:260px}
+.hero-hub__nameline h2{font-size:26px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.pencil{font-size:14px;color:var(--muted);opacity:0;transition:opacity .15s}
+.hero-hub__nameline h2:hover .pencil{opacity:1}
+.name-edit{display:inline-flex;gap:8px}
+.hero-hub__rank{color:var(--gold);font-weight:700;margin:2px 0 14px;letter-spacing:.5px}
+.hero-hub__xpbar{margin-bottom:18px}
+.hero-hub__xp-meta{display:flex;justify-content:space-between;font-size:13px;margin-top:6px}
+.stat-row{display:flex;flex-wrap:wrap;gap:10px}
+.stat{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;padding:10px 14px;min-width:92px;flex:1}
+.stat__value{font-size:19px;font-weight:800}
+.stat__label{font-size:12px;color:var(--muted);margin-top:2px}
+.heatmap{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.heatmap__dow{display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--muted)}
+.heatmap__dow span{height:15px;line-height:15px}
+.heatmap__dow .hide{visibility:hidden}
+.heatmap__grid{display:flex;gap:4px}
+.heatmap__col{display:flex;flex-direction:column;gap:4px}
+.heatmap__cell{width:15px;height:15px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.04)}
+.heatmap__cell.lvl-1{background:rgba(124,92,255,.35)}
+.heatmap__cell.lvl-2{background:rgba(124,92,255,.6)}
+.heatmap__cell.lvl-3{background:rgba(165,139,250,.85)}
+.heatmap__cell.lvl-4{background:linear-gradient(135deg,var(--gold),var(--magic-2));box-shadow:0 0 8px rgba(245,197,24,.5)}
+.heatmap__legend{display:flex;align-items:center;gap:6px;margin-top:14px;font-size:12px}
+.subject-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.subject-card{--accent:var(--magic);text-align:left;border-left:4px solid var(--accent);position:relative;
+  display:flex;flex-direction:column;gap:12px;color:var(--text);transition:transform .12s,box-shadow .15s;cursor:pointer;width:100%}
+.subject-card:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(0,0,0,.5)}
+.subject-card__crown{position:absolute;top:12px;right:14px;font-size:20px}
+.subject-card__top{display:flex;gap:12px;align-items:center}
+.subject-card__icon{font-size:34px;width:54px;height:54px;display:grid;place-items:center;border-radius:12px;
+  background:rgba(0,0,0,.25);border:1px solid var(--border)}
+.subject-card__title h3{font-size:17px}
+.subject-card__desc{margin:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.subject-card__meta{display:flex;justify-content:space-between;font-size:12px;margin-top:6px}
+.subject-hero{--accent:var(--magic);display:flex;gap:20px;align-items:center;border-left:5px solid var(--accent)}
+.subject-hero__icon{font-size:46px;width:72px;height:72px;display:grid;place-items:center;border-radius:16px;
+  background:rgba(0,0,0,.25);border:1px solid var(--border);flex-shrink:0}
+.subject-hero__info{flex:1}.subject-hero__info h2{font-size:24px}
+.subject-hero__goal{margin:8px 0;font-size:14px;color:var(--gold)}
+.subject-hero__bar{margin-top:10px}.subject-detail__desc{margin:16px 2px}
+.add-lesson{display:flex;gap:10px;margin-bottom:16px}.add-lesson input{flex:1}
+.lesson-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lesson{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:12px;
+  background:rgba(0,0,0,.22);border:1px solid var(--border);transition:background .15s}
+.lesson--done{border-color:rgba(124,92,255,.5);background:rgba(124,92,255,.08)}
+.lesson__main{display:flex;align-items:center;gap:12px;flex:1;cursor:pointer}
+.lesson__check{width:22px;height:22px;border-radius:7px;border:2px solid var(--muted);flex-shrink:0;
+  display:grid;place-items:center;transition:all .15s}
+.lesson--done .lesson__check{background:linear-gradient(135deg,var(--magic),var(--gold));border-color:transparent}
+.lesson--done .lesson__check::after{content:'✓';color:#fff;font-size:14px;font-weight:900}
+.lesson--done .lesson__title{text-decoration:line-through;color:var(--muted)}
+.lesson-empty{margin:6px 2px}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.badge{border:1px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center;
+  background:rgba(0,0,0,.22);transition:transform .12s}
+.badge--on{background:linear-gradient(180deg,rgba(245,197,24,.12),rgba(124,92,255,.08));
+  border-color:rgba(245,197,24,.5);box-shadow:0 0 18px rgba(245,197,24,.15)}
+.badge--on:hover{transform:translateY(-3px)}
+.badge--off{opacity:.55;filter:grayscale(.4)}
+.badge__icon{font-size:38px;margin-bottom:8px}
+.badge__name{font-weight:800;font-size:15px}.badge--on .badge__name{color:var(--gold)}
+.badge__desc{font-size:12px;color:var(--muted);margin-top:4px}
+.empty{text-align:center;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.empty__icon{font-size:54px}.empty .btn{margin-top:10px}
+input[type=text],input:not([type]){width:100%;background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:11px;padding:11px 13px;color:var(--text);font-size:14px;outline:none;transition:border .15s,box-shadow .15s}
+input:focus{border-color:var(--magic);box-shadow:0 0 0 3px rgba(124,92,255,.2)}
+.form{display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field>span{font-size:13px;font-weight:600;color:var(--muted)}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{width:42px;height:42px;font-size:20px;border-radius:11px;border:1px solid var(--border);
+  background:rgba(0,0,0,.25);display:grid;place-items:center}
+.chip--on{border-color:var(--magic);box-shadow:0 0 0 2px rgba(124,92,255,.4)}
+.swatch{width:32px;height:32px;border-radius:50%;border:2px solid transparent}
+.swatch--on{border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.5)}
+.form__actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+.modal-overlay{position:fixed;inset:0;background:rgba(6,4,16,.7);backdrop-filter:blur(4px);
+  display:grid;place-items:center;padding:20px;z-index:50;animation:fade .15s ease}
+.modal{width:100%;max-width:460px;max-height:90vh;overflow-y:auto;animation:pop .18s ease}
+.modal__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal__title{font-size:19px}
+.celebration{position:fixed;inset:0;display:grid;place-items:center;z-index:100;
+  background:rgba(6,4,16,.35);animation:fade .2s ease}
+.celebration__card{background:linear-gradient(160deg,var(--panel-2),var(--panel));border:2px solid var(--gold);
+  border-radius:22px;padding:34px 50px;text-align:center;box-shadow:0 0 50px rgba(245,197,24,.4);
+  animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
+.celebration__icon{font-size:64px;animation:bounce .6s ease}
+.celebration__title{font-size:26px;font-weight:900;color:var(--gold);letter-spacing:1px;margin-top:6px}
+.celebration__sub{color:var(--text);margin-top:6px;font-size:15px}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:scale(.92)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}}
+@media(max-width:760px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:relative;height:auto;flex-direction:row;align-items:center;flex-wrap:wrap;gap:14px}
+  .nav{flex-direction:row;flex-wrap:wrap}
+  .sidebar__foot{margin-top:0}.sidebar__foot .tiny{display:none}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+"use strict";
+
+/* ============ Lưu trữ ============ */
+const STORAGE_KEY = 'gamify-mylife:v1';
+const XP_PER_LESSON = 25;
+
+const DEFAULT_STATE = () => ({
+  hero:{ name:'Nhà Thám Hiểm', totalXP:0, streak:0, lastActiveDate:null },
+  subjects:[], unlockedBadges:[], activityLog:{}
+});
+
+let state = loadState();
+let ui = { view:'hub', openSubject:null, adding:false, editingName:false };
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return DEFAULT_STATE();
+    const p = JSON.parse(raw);
+    const d = DEFAULT_STATE();
+    return { ...d, ...p, hero:{ ...d.hero, ...(p.hero||{}) } };
+  }catch(e){ return DEFAULT_STATE(); }
+}
+function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+let _id=0; const uid=p=>`${p}-${Date.now().toString(36)}-${++_id}`;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ============ Ngày tháng ============ */
+function todayKey(d=new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateFromKey(k){ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); }
+function dayDiff(a,b){ return Math.round((dateFromKey(b)-dateFromKey(a))/86400000); }
+function lastNDays(n,end=new Date()){
+  const out=[];
+  for(let i=n-1;i>=0;i--){ const d=new Date(end); d.setDate(end.getDate()-i); out.push(todayKey(d)); }
+  return out;
+}
+
+/* ============ XP & Cấp độ ============ */
+const xpToAdvanceFrom = lv => 100 + 50*(lv-1);
+function getLevelInfo(totalXP){
+  let lv=1, rem=Math.max(0,Math.floor(totalXP));
+  while(rem >= xpToAdvanceFrom(lv)){ rem-=xpToAdvanceFrom(lv); lv++; }
+  const next=xpToAdvanceFrom(lv);
+  return { level:lv, xpIntoLevel:rem, xpForNext:next, progress:next?rem/next:0, totalXP:Math.floor(totalXP) };
+}
+function rankTitle(lv){
+  if(lv>=30) return 'Huyền Thoại Sống';
+  if(lv>=20) return 'Đại Hiền Triết';
+  if(lv>=15) return 'Bậc Thầy Tri Thức';
+  if(lv>=10) return 'Hiệp Sĩ Học Giả';
+  if(lv>=6)  return 'Nhà Thám Hiểm';
+  if(lv>=3)  return 'Học Đồ';
+  return 'Tân Binh';
+}
+function subjectStats(s){
+  const total=s.lessons.length, done=s.lessons.filter(l=>l.done).length;
+  const xp=done*XP_PER_LESSON;
+  return { total, done, xp, progress: total?done/total:0, completed: total>0&&done===total, level:getLevelInfo(xp).level };
+}
+
+/* ============ Thành tựu ============ */
+const completedLessons = s => s.subjects.reduce((n,x)=>n+x.lessons.filter(l=>l.done).length,0);
+const conqueredSubjects = s => s.subjects.filter(x=>x.lessons.length>0 && x.lessons.every(l=>l.done)).length;
+const BADGES=[
+  {id:'first-subject',icon:'🗺️',name:'Tân Binh',desc:'Thêm vùng đất (môn học) đầu tiên.',check:s=>s.subjects.length>=1},
+  {id:'first-lesson',icon:'⚔️',name:'Nhát Chém Đầu Tiên',desc:'Hoàn thành bài học đầu tiên.',check:s=>completedLessons(s)>=1},
+  {id:'ten-lessons',icon:'📚',name:'Ham Học',desc:'Hoàn thành 10 bài học.',check:s=>completedLessons(s)>=10},
+  {id:'fifty-lessons',icon:'🧠',name:'Bộ Óc Thép',desc:'Hoàn thành 50 bài học.',check:s=>completedLessons(s)>=50},
+  {id:'streak-3',icon:'✨',name:'Nhen Nhóm',desc:'Học liên tục 3 ngày.',check:s=>s.hero.streak>=3},
+  {id:'streak-7',icon:'🔥',name:'Lửa Bền',desc:'Học liên tục 7 ngày.',check:s=>s.hero.streak>=7},
+  {id:'streak-30',icon:'🌋',name:'Ngọn Lửa Bất Diệt',desc:'Học liên tục 30 ngày.',check:s=>s.hero.streak>=30},
+  {id:'complete-subject',icon:'🏆',name:'Bậc Thầy',desc:'Chinh phục trọn vẹn một môn học.',check:s=>conqueredSubjects(s)>=1},
+  {id:'three-subjects',icon:'👑',name:'Vua Tri Thức',desc:'Chinh phục trọn vẹn 3 môn học.',check:s=>conqueredSubjects(s)>=3},
+  {id:'level-10',icon:'🐉',name:'Thợ Săn Rồng',desc:'Đạt tổng cấp độ 10.',check:(s,li)=>li.level>=10},
+];
+let celebration=null, celebTimer=null;
+function showCeleb(c){
+  celebration=c; render();
+  clearTimeout(celebTimer);
+  celebTimer=setTimeout(()=>{ celebration=null; render(); }, 3500);
+}
+function checkBadges(){
+  const li=getLevelInfo(state.hero.totalXP);
+  const newly=BADGES.filter(b=>!state.unlockedBadges.includes(b.id)&&b.check(state,li)).map(b=>b.id);
+  if(newly.length){
+    state.unlockedBadges.push(...newly);
+    const first=BADGES.find(b=>b.id===newly[0]);
+    return { type:'badge', badge:first, count:newly.length };
+  }
+  return null;
+}
+
+/* ============ Hành động ============ */
+function commit(celeb){ save(); const b=checkBadges(); if(celeb){ showCeleb(celeb); } else if(b){ showCeleb(b); } else { render(); } }
+
+function registerActivity(xp){
+  const t=todayKey(), last=state.hero.lastActiveDate;
+  if(last===t){} else if(last && dayDiff(last,t)===1){ state.hero.streak++; } else { state.hero.streak=1; }
+  state.hero.lastActiveDate=t;
+  state.activityLog[t]=(state.activityLog[t]||0)+xp;
+}
+function addSubject(d){
+  state.subjects.push({ id:uid('subj'), name:(d.name||'').trim()||'Môn mới', icon:d.icon||'📘',
+    color:d.color||'#7c5cff', description:d.description||'', goal:d.goal||'', createdAt:todayKey(), lessons:[] });
+  commit();
+}
+function deleteSubject(id){ state.subjects=state.subjects.filter(s=>s.id!==id); commit(); }
+function addLesson(sid,title){
+  const t=(title||'').trim(); if(!t) return;
+  const s=state.subjects.find(x=>x.id===sid); if(!s) return;
+  s.lessons.push({ id:uid('les'), title:t, done:false }); commit();
+}
+function deleteLesson(sid,lid){
+  const s=state.subjects.find(x=>x.id===sid); if(!s) return;
+  s.lessons=s.lessons.filter(l=>l.id!==lid); commit();
+}
+function toggleLesson(sid,lid){
+  const s=state.subjects.find(x=>x.id===sid); if(!s) return;
+  const l=s.lessons.find(x=>x.id===lid); if(!l) return;
+  const before=getLevelInfo(state.hero.totalXP).level;
+  l.done=!l.done;
+  state.hero.totalXP=Math.max(0, state.hero.totalXP + (l.done?XP_PER_LESSON:-XP_PER_LESSON));
+  let celeb=null;
+  if(l.done){
+    registerActivity(XP_PER_LESSON);
+    const after=getLevelInfo(state.hero.totalXP).level;
+    if(after>before) celeb={ type:'level', level:after };
+  }
+  commit(celeb);
+}
+function setHeroName(n){ state.hero.name=(n||'').trim()||'Nhà Thám Hiểm'; ui.editingName=false; commit(); }
+function resetAll(){ state=DEFAULT_STATE(); ui={view:'hub',openSubject:null,adding:false,editingName:false}; commit(); }
+
+/* ============ Giao diện ============ */
+const root=document.getElementById('root');
+
+function progressBar(v,color='#7c5cff',h=10){
+  const pct=Math.max(0,Math.min(1,v))*100;
+  return `<div class="progress" style="height:${h}px"><div class="progress__fill" style="width:${pct}%;background:${color}"></div></div>`;
+}
+
+function heroHub(){
+  const li=getLevelInfo(state.hero.totalXP);
+  const done=state.subjects.reduce((n,s)=>n+subjectStats(s).done,0);
+  const conq=state.subjects.filter(s=>subjectStats(s).completed).length;
+  const nameBlock = ui.editingName
+    ? `<span class="name-edit"><input id="nameInput" value="${esc(state.hero.name)}" autofocus />
+        <button class="btn btn--primary btn--sm" data-act="saveName">Lưu</button></span>`
+    : `<h2 data-act="editName">${esc(state.hero.name)} <span class="pencil">✎</span></h2>`;
+  return `<section class="panel hero-hub">
+    <div class="hero-hub__avatar">
+      <div class="hero-hub__avatar-emoji">🧙</div>
+      <div class="hero-hub__level-badge">Lv ${li.level}</div>
+    </div>
+    <div class="hero-hub__body">
+      <div class="hero-hub__nameline">${nameBlock}</div>
+      <div class="hero-hub__rank">${rankTitle(li.level)}</div>
+      <div class="hero-hub__xpbar">
+        ${progressBar(li.progress,'#f5c518',14)}
+        <div class="hero-hub__xp-meta muted">
+          <span>${li.xpIntoLevel} / ${li.xpForNext} XP</span><span>Tổng ${li.totalXP} XP</span>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="stat__value">🔥 ${state.hero.streak}</div><div class="stat__label">ngày liên tục</div></div>
+        <div class="stat"><div class="stat__value">📚 ${state.subjects.length}</div><div class="stat__label">môn học</div></div>
+        <div class="stat"><div class="stat__value">✅ ${done}</div><div class="stat__label">bài đã xong</div></div>
+        <div class="stat"><div class="stat__value">👑 ${conq}</div><div class="stat__label">môn chinh phục</div></div>
+        <div class="stat"><div class="stat__value">🏆 ${state.unlockedBadges.length}</div><div class="stat__label">thành tựu</div></div>
+      </div>
+    </div></section>`;
+}
+
+function heatmap(){
+  const WEEKS=17, days=lastNDays(WEEKS*7);
+  const lvl=xp=>!xp?0:xp>=100?4:xp>=50?3:xp>=25?2:1;
+  const totalXP=days.reduce((n,k)=>n+(state.activityLog[k]||0),0);
+  const active=days.filter(k=>state.activityLog[k]).length;
+  const DOW=['CN','T2','T3','T4','T5','T6','T7'];
+  let cols='';
+  for(let w=0;w<WEEKS;w++){
+    let cells='';
+    days.slice(w*7,w*7+7).forEach(k=>{
+      const xp=state.activityLog[k]||0;
+      cells+=`<div class="heatmap__cell lvl-${lvl(xp)}" title="${dateFromKey(k).toLocaleDateString('vi-VN')} — ${xp} XP"></div>`;
+    });
+    cols+=`<div class="heatmap__col">${cells}</div>`;
+  }
+  const dow=DOW.map((d,i)=>`<span class="${i%2?'show':'hide'}">${d}</span>`).join('');
+  const legend=[0,1,2,3,4].map(l=>`<div class="heatmap__cell lvl-${l}"></div>`).join('');
+  return `<section class="panel">
+    <div class="panel__head"><h2>🗓️ Nhật Ký Phiêu Lưu</h2>
+      <span class="muted">${active} ngày học · ${totalXP} XP trong ${WEEKS} tuần qua</span></div>
+    <div class="heatmap"><div class="heatmap__dow">${dow}</div><div class="heatmap__grid">${cols}</div></div>
+    <div class="heatmap__legend"><span class="muted">Ít</span>${legend}<span class="muted">Nhiều</span></div>
+  </section>`;
+}
+
+function subjectCard(s){
+  const st=subjectStats(s);
+  return `<button class="subject-card panel" style="--accent:${s.color}" data-act="openSubject" data-id="${s.id}">
+    ${st.completed?'<div class="subject-card__crown">👑</div>':''}
+    <div class="subject-card__top">
+      <div class="subject-card__icon">${s.icon}</div>
+      <div class="subject-card__title"><h3>${esc(s.name)}</h3>
+        <span class="muted">Cấp ${st.level} · vùng đất tri thức</span></div>
+    </div>
+    ${s.description?`<p class="subject-card__desc">${esc(s.description)}</p>`:''}
+    <div class="subject-card__bar">${progressBar(st.progress,s.color)}
+      <div class="subject-card__meta muted"><span>${st.done}/${st.total} bài</span><span>${Math.round(st.progress*100)}%</span></div>
+    </div></button>`;
+}
+
+function questMap(){
+  const head=`<div class="section-head"><div>
+    <h2>🗺️ Bản Đồ Chinh Phục</h2>
+    <p class="muted">Mỗi môn học là một vùng đất đang chờ cậu khám phá.</p></div>
+    <button class="btn btn--primary" data-act="openAdd">+ Thêm vùng đất</button></div>`;
+  if(!state.subjects.length){
+    return `<section>${head}<div class="empty panel">
+      <div class="empty__icon">🧭</div><h3>Bản đồ còn trống</h3>
+      <p class="muted">Hãy thêm môn học đầu tiên để bắt đầu hành trình lên cấp!</p>
+      <button class="btn btn--primary" data-act="openAdd">+ Tạo vùng đất đầu tiên</button></div></section>`;
+  }
+  return `<section>${head}<div class="subject-grid">${state.subjects.map(subjectCard).join('')}</div></section>`;
+}
+
+function subjectDetail(){
+  const s=state.subjects.find(x=>x.id===ui.openSubject);
+  if(!s) return `<div class="panel empty"><p>Không tìm thấy môn học này.</p>
+    <button class="btn btn--ghost" data-act="goMap">← Quay lại bản đồ</button></div>`;
+  const st=subjectStats(s);
+  const lessons = s.lessons.length
+    ? `<ul class="lesson-list">${s.lessons.map(l=>`
+        <li class="lesson ${l.done?'lesson--done':''}">
+          <span class="lesson__main" data-act="toggleLesson" data-sid="${s.id}" data-id="${l.id}">
+            <span class="lesson__check"></span><span class="lesson__title">${esc(l.title)}</span></span>
+          <button class="icon-btn" data-act="delLesson" data-sid="${s.id}" data-id="${l.id}" title="Xoá bài">✕</button>
+        </li>`).join('')}</ul>`
+    : `<p class="muted lesson-empty">Chưa có nhiệm vụ nào. Thêm bài học để bắt đầu nhận XP!</p>`;
+  return `<section style="--accent:${s.color}">
+    <button class="btn btn--ghost back-btn" data-act="goMap">← Bản đồ</button>
+    <div class="panel subject-hero" style="--accent:${s.color}">
+      <div class="subject-hero__icon">${s.icon}</div>
+      <div class="subject-hero__info">
+        <h2>${esc(s.name)} ${st.completed?'<span title="Đã chinh phục">👑</span>':''}</h2>
+        <span class="muted">Cấp ${st.level} · ${st.done}/${st.total} bài · ${st.xp} XP</span>
+        ${s.goal?`<div class="subject-hero__goal">🎯 ${esc(s.goal)}</div>`:''}
+        <div class="subject-hero__bar">${progressBar(st.progress,s.color,14)}</div>
+      </div>
+      <button class="icon-btn danger" data-act="delSubject" data-id="${s.id}" title="Xoá môn">🗑️</button>
+    </div>
+    ${s.description?`<p class="muted subject-detail__desc">${esc(s.description)}</p>`:''}
+    <div class="panel">
+      <div class="panel__head"><h3>⚔️ Danh sách nhiệm vụ</h3>
+        <span class="muted">+${XP_PER_LESSON} XP mỗi bài hoàn thành</span></div>
+      <form class="add-lesson" data-act="addLessonForm" data-sid="${s.id}">
+        <input id="lessonInput" placeholder="Thêm bài học / chương mới..." autocomplete="off" />
+        <button class="btn btn--primary" type="submit">+ Thêm</button>
+      </form>
+      ${lessons}
+    </div></section>`;
+}
+
+function hallOfFame(){
+  const set=new Set(state.unlockedBadges);
+  const cards=BADGES.map(b=>{
+    const has=set.has(b.id);
+    return `<div class="badge ${has?'badge--on':'badge--off'}" title="${esc(b.desc)}">
+      <div class="badge__icon">${has?b.icon:'🔒'}</div>
+      <div class="badge__name">${b.name}</div>
+      <div class="badge__desc">${b.desc}</div></div>`;
+  }).join('');
+  return `<section class="panel">
+    <div class="panel__head"><h2>🏆 Sảnh Vinh Danh</h2>
+      <span class="muted">${set.size}/${BADGES.length} thành tựu</span></div>
+    <div class="badge-grid">${cards}</div></section>`;
+}
+
+function addModal(){
+  const ICONS=['📘','🧮','🧪','🌍','💻','🎨','🎸','🗣️','⚗️','📜','🩺','🏋️'];
+  const COLORS=['#7c5cff','#ff5c8a','#ffb14e','#34d399','#38bdf8','#f472b6','#a78bfa','#f5c518'];
+  const icons=ICONS.map((ic,i)=>`<button type="button" class="chip ${i===0?'chip--on':''}" data-icon="${ic}">${ic}</button>`).join('');
+  const swatches=COLORS.map((c,i)=>`<button type="button" class="swatch ${i===0?'swatch--on':''}" data-color="${c}" style="background:${c}" aria-label="${c}"></button>`).join('');
+  return `<div class="modal-overlay" data-act="closeOverlay">
+    <div class="modal panel">
+      <div class="modal__head"><h2 class="modal__title">🗺️ Khai phá vùng đất mới</h2>
+        <button class="icon-btn" data-act="closeAdd">✕</button></div>
+      <form class="form" id="addForm">
+        <label class="field"><span>Tên môn học *</span>
+          <input id="f_name" autofocus placeholder="VD: Tiếng Anh, Giải tích, Lịch sử..." autocomplete="off" /></label>
+        <div class="field"><span>Biểu tượng</span><div class="chip-row" id="iconRow">${icons}</div></div>
+        <div class="field"><span>Màu sắc</span><div class="chip-row" id="colorRow">${swatches}</div></div>
+        <label class="field"><span>Mô tả (tuỳ chọn)</span>
+          <input id="f_desc" placeholder="Vài dòng về môn này..." autocomplete="off" /></label>
+        <label class="field"><span>Mục tiêu (tuỳ chọn)</span>
+          <input id="f_goal" placeholder="VD: Đạt 7.0 IELTS, thi cuối kỳ..." autocomplete="off" /></label>
+        <div class="form__actions">
+          <button type="button" class="btn btn--ghost" data-act="closeAdd">Huỷ</button>
+          <button type="submit" class="btn btn--primary">Tạo vùng đất</button>
+        </div>
+      </form>
+    </div></div>`;
+}
+
+function celebView(){
+  if(!celebration) return '';
+  const c=celebration;
+  const inner = c.type==='level'
+    ? `<div class="celebration__icon">⭐</div><div class="celebration__title">LÊN CẤP!</div>
+       <div class="celebration__sub">Bạn đã đạt Cấp ${c.level}</div>`
+    : `<div class="celebration__icon">${c.badge.icon}</div><div class="celebration__title">THÀNH TỰU MỚI!</div>
+       <div class="celebration__sub">${c.badge.name}${c.count>1?` +${c.count-1} khác`:''}</div>`;
+  return `<div class="celebration" data-act="closeCeleb"><div class="celebration__card">${inner}</div></div>`;
+}
+
+const NAV=[{id:'hub',label:'Sảnh Chính',icon:'🏰'},{id:'map',label:'Bản Đồ Môn',icon:'🗺️'},{id:'badges',label:'Thành Tựu',icon:'🏆'}];
+
+function render(){
+  const nav=NAV.map(n=>{
+    const active = ui.view===n.id || (n.id==='map'&&ui.view==='subject');
+    return `<button class="nav__item ${active?'nav__item--active':''}" data-act="nav" data-view="${n.id}">
+      <span class="nav__icon">${n.icon}</span>${n.label}</button>`;
+  }).join('');
+
+  let main='';
+  if(ui.view==='hub') main=`<div class="stack">${heroHub()}${heatmap()}</div>`;
+  else if(ui.view==='map') main=questMap();
+  else if(ui.view==='subject') main=subjectDetail();
+  else if(ui.view==='badges') main=hallOfFame();
+
+  root.innerHTML=`<div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand__star">✦</span>
+        <div><div class="brand__title">Gamify My Life</div><div class="brand__sub">RPG Học Tập</div></div></div>
+      <nav class="nav">${nav}</nav>
+      <div class="sidebar__foot">
+        <button class="reset-link" data-act="reset">⟲ Bắt đầu lại</button>
+        <p class="muted tiny">Dữ liệu lưu ngay trên trình duyệt của bạn.</p>
+      </div>
+    </aside>
+    <main class="content">${main}</main>
+  </div>${ui.adding?addModal():''}${celebView()}`;
+
+  wire();
+}
+
+/* ============ Sự kiện ============ */
+function wire(){
+  // chọn icon/màu trong modal
+  const iconRow=document.getElementById('iconRow');
+  if(iconRow){
+    iconRow.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+      iconRow.querySelectorAll('.chip').forEach(x=>x.classList.remove('chip--on'));
+      b.classList.add('chip--on');
+    });
+    const colorRow=document.getElementById('colorRow');
+    colorRow.querySelectorAll('.swatch').forEach(b=>b.onclick=()=>{
+      colorRow.querySelectorAll('.swatch').forEach(x=>x.classList.remove('swatch--on'));
+      b.classList.add('swatch--on');
+    });
+  }
+  const addForm=document.getElementById('addForm');
+  if(addForm) addForm.onsubmit=e=>{
+    e.preventDefault();
+    const name=document.getElementById('f_name').value;
+    if(!name.trim()) return;
+    addSubject({
+      name,
+      icon:(document.querySelector('#iconRow .chip--on')||{}).dataset?.icon||'📘',
+      color:(document.querySelector('#colorRow .swatch--on')||{}).dataset?.color||'#7c5cff',
+      description:document.getElementById('f_desc').value,
+      goal:document.getElementById('f_goal').value
+    });
+    ui.adding=false; render();
+  };
+  const lessonForm=document.querySelector('[data-act=addLessonForm]');
+  if(lessonForm) lessonForm.onsubmit=e=>{
+    e.preventDefault();
+    const inp=document.getElementById('lessonInput');
+    addLesson(lessonForm.dataset.sid, inp.value);
+  };
+  const nameInput=document.getElementById('nameInput');
+  if(nameInput){ nameInput.focus(); nameInput.onkeydown=e=>{ if(e.key==='Enter') setHeroName(nameInput.value); }; }
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  const a=t.dataset.act;
+  switch(a){
+    case 'nav': ui.view=t.dataset.view; ui.openSubject=null; render(); break;
+    case 'openSubject': ui.openSubject=t.dataset.id; ui.view='subject'; render(); break;
+    case 'goMap': ui.openSubject=null; ui.view='map'; render(); break;
+    case 'openAdd': ui.adding=true; render(); break;
+    case 'closeAdd': ui.adding=false; render(); break;
+    case 'closeOverlay':
+      // chỉ đóng khi bấm trúng nền mờ, không phải nội dung bên trong
+      if(e.target.classList.contains('modal-overlay')){ ui.adding=false; render(); }
+      break;
+    case 'editName': ui.editingName=true; render(); break;
+    case 'saveName': setHeroName(document.getElementById('nameInput').value); break;
+    case 'toggleLesson': toggleLesson(t.dataset.sid,t.dataset.id); break;
+    case 'delLesson': deleteLesson(t.dataset.sid,t.dataset.id); break;
+    case 'delSubject':
+      if(confirm('Xoá vùng đất này? Hành động không thể hoàn tác.')){ deleteSubject(t.dataset.id); ui.openSubject=null; ui.view='map'; render(); }
+      break;
+    case 'reset':
+      if(confirm('Xoá toàn bộ tiến trình và bắt đầu lại?')) resetAll();
+      break;
+    case 'closeCeleb': celebration=null; clearTimeout(celebTimer); render(); break;
+  }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && ui.adding){ ui.adding=false; render(); } });
+
+render();
+</script>
+</body>
+</html>
