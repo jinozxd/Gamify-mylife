@@ -345,6 +345,31 @@ button {
   margin-top: 2px;
 }
 
+/* ---------- Streak multiplier banner ---------- */
+.mult-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.mult-banner--on {
+  border-color: rgba(245, 197, 24, 0.5);
+  background: linear-gradient(135deg, rgba(245, 197, 24, 0.14), rgba(124, 92, 255, 0.1));
+  box-shadow: 0 0 16px rgba(245, 197, 24, 0.12);
+}
+.mult-banner b {
+  color: var(--gold);
+}
+.mult-banner__icon {
+  font-size: 16px;
+}
+
 /* ---------- Heatmap ---------- */
 .heatmap {
   display: flex;
@@ -501,13 +526,63 @@ button {
   margin: 16px 2px;
 }
 
+.add-lesson-form {
+  margin-bottom: 16px;
+}
 .add-lesson {
   display: flex;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 .add-lesson input {
   flex: 1;
+}
+.diff-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.diff-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.diff-chip--on {
+  color: var(--text);
+  border-color: var(--magic);
+  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.3);
+}
+.diff-chip__xp {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.lesson__diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.lesson__diff b {
+  color: var(--gold);
+}
+.lesson__diff.diff--hard {
+  border-color: rgba(255, 177, 78, 0.5);
+}
+.lesson__diff.diff--boss {
+  border-color: rgba(255, 92, 122, 0.55);
 }
 
 .lesson-list {
@@ -764,6 +839,86 @@ input:focus {
   color: var(--text);
   margin-top: 6px;
   font-size: 15px;
+}
+
+/* ---------- XP toast ---------- */
+.xp-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 90;
+  min-width: 150px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  text-align: center;
+  background: linear-gradient(160deg, var(--panel-2), var(--panel));
+  border: 1px solid rgba(245, 197, 24, 0.5);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 22px rgba(245, 197, 24, 0.15);
+  animation: xp-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1), float-up 2.6s ease forwards;
+}
+.xp-toast__amount {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 14px rgba(245, 197, 24, 0.45);
+}
+.xp-toast__break {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.xp-toast__mult {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.xp-toast__mult.streak {
+  background: rgba(245, 197, 24, 0.16);
+  color: var(--gold);
+}
+.xp-toast__mult.combo {
+  background: rgba(255, 92, 122, 0.16);
+  color: #ff9bb0;
+}
+.xp-toast__combo {
+  margin-top: 6px;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #ff9bb0;
+  animation: shake 0.4s ease;
+}
+@keyframes xp-pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+@keyframes float-up {
+  0%,
+  85% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
 }
 
 @keyframes fade {

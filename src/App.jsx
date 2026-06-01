@@ -6,6 +6,7 @@ import SubjectDetail from './components/Subjects/SubjectDetail'
 import HallOfFame from './components/Badges/HallOfFame'
 import Heatmap from './components/Heatmap/Heatmap'
 import Celebration from './components/Celebration'
+import XpToast from './components/XpToast'
 
 const NAV = [
   { id: 'hub', label: 'Sảnh Chính', icon: '🏰' },
@@ -90,6 +91,7 @@ export default function App() {
       </main>
 
       <Celebration />
+      <XpToast />
     </div>
   )
 }

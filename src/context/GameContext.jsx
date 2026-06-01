@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { BADGES } from '../data/badges'
-import { getLevelInfo, XP_PER_LESSON } from '../utils/leveling'
+import { getLevelInfo } from '../utils/leveling'
+import { computeXP, difficultyOf, nextCombo } from '../utils/gamify'
 import { dayDiff, todayKey } from '../utils/date'
 
 const STORAGE_KEY = 'gamify-mylife:v1'
@@ -11,6 +12,8 @@ const DEFAULT_STATE = {
     totalXP: 0,
     streak: 0,
     lastActiveDate: null, // "YYYY-MM-DD" of last day XP was earned
+    combo: 0, // số bài đang chuỗi trong phiên
+    lastCompletionAt: null, // timestamp ms của bài gần nhất (cho combo)
   },
   subjects: [],
   unlockedBadges: [], // array of badge ids
@@ -45,6 +48,8 @@ export function GameProvider({ children }) {
   const [state, setState] = useState(loadState)
   // Transient celebration banners (level up / new badges).
   const [celebration, setCelebration] = useState(null)
+  // Transient "+XP" toast with the breakdown of the last reward.
+  const [xpToast, setXpToast] = useState(null)
 
   // Persist on every change.
   useEffect(() => {
@@ -79,28 +84,12 @@ export function GameProvider({ children }) {
 
   // --- Helpers -------------------------------------------------------------
 
-  // Register study activity for today: bump streak and log XP for the heatmap.
-  function registerActivity(prev, xp) {
-    const today = todayKey()
-    const last = prev.hero.lastActiveDate
-    let streak = prev.hero.streak
-
-    if (last === today) {
-      // already active today, keep streak
-    } else if (last && dayDiff(last, today) === 1) {
-      streak += 1
-    } else {
-      streak = 1
-    }
-
-    return {
-      ...prev,
-      hero: { ...prev.hero, streak, lastActiveDate: today },
-      activityLog: {
-        ...prev.activityLog,
-        [today]: (prev.activityLog[today] || 0) + xp,
-      },
-    }
+  // The streak value AFTER counting study activity on `today`.
+  function streakAfter(prevHero, today) {
+    const last = prevHero.lastActiveDate
+    if (last === today) return prevHero.streak // already active today
+    if (last && dayDiff(last, today) === 1) return prevHero.streak + 1
+    return 1
   }
 
   // --- Actions -------------------------------------------------------------
@@ -141,9 +130,10 @@ export function GameProvider({ children }) {
       }))
     },
 
-    addLesson(subjectId, title) {
+    addLesson(subjectId, title, difficulty = 'normal') {
       const t = (title || '').trim()
       if (!t) return
+      const diff = difficultyOf(difficulty).id
       setState((prev) => ({
         ...prev,
         subjects: prev.subjects.map((s) =>
@@ -152,7 +142,13 @@ export function GameProvider({ children }) {
                 ...s,
                 lessons: [
                   ...s.lessons,
-                  { id: uid('les'), title: t, done: false },
+                  {
+                    id: uid('les'),
+                    title: t,
+                    done: false,
+                    difficulty: diff,
+                    xpAwarded: 0,
+                  },
                 ],
               }
             : s
@@ -173,35 +169,82 @@ export function GameProvider({ children }) {
 
     toggleLesson(subjectId, lessonId) {
       setState((prev) => {
-        let becameDone = false
-        let xpDelta = 0
+        const lesson = prev.subjects
+          .find((s) => s.id === subjectId)
+          ?.lessons.find((l) => l.id === lessonId)
+        if (!lesson) return prev
 
-        const subjects = prev.subjects.map((s) => {
-          if (s.id !== subjectId) return s
-          return {
-            ...s,
-            lessons: s.lessons.map((l) => {
-              if (l.id !== lessonId) return l
-              const done = !l.done
-              becameDone = done
-              xpDelta = done ? XP_PER_LESSON : -XP_PER_LESSON
-              return { ...l, done }
-            }),
-          }
-        })
+        const becameDone = !lesson.done
+        const today = todayKey()
+        const now = Date.now()
 
-        const totalXP = Math.max(0, prev.hero.totalXP + xpDelta)
-        let next = { ...prev, subjects, hero: { ...prev.hero, totalXP } }
-
+        // --- Marking DONE: compute streak → combo → bonused XP -------------
         if (becameDone) {
+          const streak = streakAfter(prev.hero, today)
+          const combo = nextCombo(prev.hero.combo, prev.hero.lastCompletionAt, now)
+          const reward = computeXP({
+            difficultyId: lesson.difficulty,
+            streak,
+            combo,
+          })
+
+          const totalXP = prev.hero.totalXP + reward.xp
           const beforeLevel = getLevelInfo(prev.hero.totalXP).level
-          next = registerActivity(next, XP_PER_LESSON)
           const afterLevel = getLevelInfo(totalXP).level
+
           if (afterLevel > beforeLevel) {
             setCelebration({ type: 'level', level: afterLevel })
           }
+          setXpToast({ ...reward, combo, streak, at: now })
+
+          return {
+            ...prev,
+            subjects: prev.subjects.map((s) =>
+              s.id !== subjectId
+                ? s
+                : {
+                    ...s,
+                    lessons: s.lessons.map((l) =>
+                      l.id === lessonId
+                        ? { ...l, done: true, xpAwarded: reward.xp }
+                        : l
+                    ),
+                  }
+            ),
+            hero: {
+              ...prev.hero,
+              totalXP,
+              streak,
+              lastActiveDate: today,
+              combo,
+              lastCompletionAt: now,
+            },
+            activityLog: {
+              ...prev.activityLog,
+              [today]: (prev.activityLog[today] || 0) + reward.xp,
+            },
+          }
         }
-        return next
+
+        // --- Un-marking: refund exactly what this lesson granted ----------
+        const refund = lesson.xpAwarded || difficultyOf(lesson.difficulty).baseXP
+        return {
+          ...prev,
+          subjects: prev.subjects.map((s) =>
+            s.id !== subjectId
+              ? s
+              : {
+                  ...s,
+                  lessons: s.lessons.map((l) =>
+                    l.id === lessonId ? { ...l, done: false, xpAwarded: 0 } : l
+                  ),
+                }
+          ),
+          hero: {
+            ...prev.hero,
+            totalXP: Math.max(0, prev.hero.totalXP - refund),
+          },
+        }
       })
     },
 
@@ -217,7 +260,8 @@ export function GameProvider({ children }) {
     badges: BADGES,
     celebration,
     dismissCelebration: () => setCelebration(null),
-    XP_PER_LESSON,
+    xpToast,
+    dismissXpToast: () => setXpToast(null),
   }
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>

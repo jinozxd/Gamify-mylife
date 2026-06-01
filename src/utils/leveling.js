@@ -6,8 +6,6 @@
 //   level 2 -> 3 : 150 XP
 //   level 3 -> 4 : 200 XP ... (i.e. 100 + 50 * (level - 1))
 
-export const XP_PER_LESSON = 25
-
 export function xpToAdvanceFrom(level) {
   return 100 + 50 * (level - 1)
 }

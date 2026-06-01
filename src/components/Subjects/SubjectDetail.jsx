@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useGame } from '../../context/GameContext'
 import ProgressBar from '../common/ProgressBar'
 import { subjectStats } from '../../utils/subject'
+import { DIFFICULTY_LIST, difficultyOf } from '../../utils/gamify'
 
 export default function SubjectDetail({ subjectId, onBack }) {
-  const { state, actions, XP_PER_LESSON } = useGame()
+  const { state, actions } = useGame()
   const subject = state.subjects.find((s) => s.id === subjectId)
   const [newLesson, setNewLesson] = useState('')
+  const [difficulty, setDifficulty] = useState('normal')
 
   if (!subject) {
     return (
@@ -24,7 +26,7 @@ export default function SubjectDetail({ subjectId, onBack }) {
   function addLesson(e) {
     e.preventDefault()
     if (!newLesson.trim()) return
-    actions.addLesson(subject.id, newLesson)
+    actions.addLesson(subject.id, newLesson, difficulty)
     setNewLesson('')
   }
 
@@ -70,18 +72,38 @@ export default function SubjectDetail({ subjectId, onBack }) {
       <div className="panel">
         <div className="panel__head">
           <h3>⚔️ Danh sách nhiệm vụ</h3>
-          <span className="muted">+{XP_PER_LESSON} XP mỗi bài hoàn thành</span>
+          <span className="muted">XP nhận = độ khó × streak × combo</span>
         </div>
 
-        <form className="add-lesson" onSubmit={addLesson}>
-          <input
-            value={newLesson}
-            onChange={(e) => setNewLesson(e.target.value)}
-            placeholder="Thêm bài học / chương mới..."
-          />
-          <button className="btn btn--primary" type="submit" disabled={!newLesson.trim()}>
-            + Thêm
-          </button>
+        <form className="add-lesson-form" onSubmit={addLesson}>
+          <div className="add-lesson">
+            <input
+              value={newLesson}
+              onChange={(e) => setNewLesson(e.target.value)}
+              placeholder="Thêm bài học / chương mới..."
+            />
+            <button
+              className="btn btn--primary"
+              type="submit"
+              disabled={!newLesson.trim()}
+            >
+              + Thêm
+            </button>
+          </div>
+          <div className="diff-picker">
+            {DIFFICULTY_LIST.map((d) => (
+              <button
+                type="button"
+                key={d.id}
+                className={`diff-chip ${difficulty === d.id ? 'diff-chip--on' : ''}`}
+                onClick={() => setDifficulty(d.id)}
+                title={`${d.label} · ${d.baseXP} XP gốc`}
+              >
+                {d.icon} {d.label}
+                <span className="diff-chip__xp">{d.baseXP} XP</span>
+              </button>
+            ))}
+          </div>
         </form>
 
         {subject.lessons.length === 0 ? (
@@ -90,26 +112,43 @@ export default function SubjectDetail({ subjectId, onBack }) {
           </p>
         ) : (
           <ul className="lesson-list">
-            {subject.lessons.map((l) => (
-              <li key={l.id} className={`lesson ${l.done ? 'lesson--done' : ''}`}>
-                <label className="lesson__main">
-                  <input
-                    type="checkbox"
-                    checked={l.done}
-                    onChange={() => actions.toggleLesson(subject.id, l.id)}
-                  />
-                  <span className="lesson__check" aria-hidden />
-                  <span className="lesson__title">{l.title}</span>
-                </label>
-                <button
-                  className="icon-btn"
-                  onClick={() => actions.deleteLesson(subject.id, l.id)}
-                  title="Xoá bài"
+            {subject.lessons.map((l) => {
+              const d = difficultyOf(l.difficulty)
+              return (
+                <li
+                  key={l.id}
+                  className={`lesson ${l.done ? 'lesson--done' : ''}`}
                 >
-                  ✕
-                </button>
-              </li>
-            ))}
+                  <label className="lesson__main">
+                    <input
+                      type="checkbox"
+                      checked={l.done}
+                      onChange={() => actions.toggleLesson(subject.id, l.id)}
+                    />
+                    <span className="lesson__check" aria-hidden />
+                    <span className="lesson__title">{l.title}</span>
+                  </label>
+                  <span
+                    className={`lesson__diff diff--${d.id}`}
+                    title={`Độ khó: ${d.label}`}
+                  >
+                    {d.icon}
+                    {l.done ? (
+                      <b>+{l.xpAwarded || d.baseXP}</b>
+                    ) : (
+                      <span className="muted">{d.baseXP}</span>
+                    )}
+                  </span>
+                  <button
+                    className="icon-btn"
+                    onClick={() => actions.deleteLesson(subject.id, l.id)}
+                    title="Xoá bài"
+                  >
+                    ✕
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

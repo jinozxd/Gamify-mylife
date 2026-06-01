@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useGame } from '../../context/GameContext'
 import { getRankTitle } from '../../utils/leveling'
+import { streakMultiplier } from '../../utils/gamify'
 import ProgressBar from '../common/ProgressBar'
 import { subjectStats } from '../../utils/subject'
 
@@ -14,6 +15,7 @@ export default function HeroHub() {
     0
   )
   const conquered = state.subjects.filter((s) => subjectStats(s).completed).length
+  const mult = streakMultiplier(state.hero.streak)
 
   function saveName() {
     actions.setHeroName(nameDraft.trim() || 'Nhà Thám Hiểm')
@@ -57,6 +59,22 @@ export default function HeroHub() {
             </span>
             <span>Tổng {levelInfo.totalXP} XP</span>
           </div>
+        </div>
+
+        <div
+          className={`mult-banner ${mult > 1 ? 'mult-banner--on' : ''}`}
+          title="Streak càng cao, mỗi bài học càng nhiều XP"
+        >
+          <span className="mult-banner__icon">⚡</span>
+          <span>
+            Hệ số streak hiện tại: <b>×{mult}</b>
+          </span>
+          {mult < 2 && (
+            <span className="muted tiny">
+              {' '}
+              · giữ streak để lên ×{mult === 1 ? '1.25' : mult === 1.25 ? '1.5' : mult === 1.5 ? '1.75' : '2'}
+            </span>
+          )}
         </div>
 
         <div className="stat-row">
