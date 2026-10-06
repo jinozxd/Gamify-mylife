@@ -39,6 +39,24 @@ Ví dụ: clear một bài **Boss** khi đang streak 7 ngày và combo 3 →
 > Tiến trình & cấp độ của từng **môn** dựa trên XP gốc (không tính bonus) nên
 > luôn ổn định; còn cấp độ **nhân vật** thì hưởng trọn XP đã nhân.
 
+## 🌊 Bonus: Claude du ngoạn Hạ Long
+
+File **[`claude-ha-long.html`](claude-ha-long.html)** là một hoạt hình canvas một-file
+(mở thẳng bằng trình duyệt): Claude mặc áo dài, chở Chiikawa, Hachiware và Usagi trên
+một hòn đảo nhỏ đi vòng quanh Vịnh Hạ Long.
+
+- Một ngày trọn vẹn (6 phút ở tốc độ 1×), **ngày và đêm chia đều**, chuyển màu trời
+  mượt qua bình minh và hoàng hôn.
+- 9 chặng, mỗi chặng một bộ áo dài, biểu cảm và hành động khác nhau: Hòn Trống Mái
+  lúc bình minh → vùng quê & Hòn Con Cóc → trường học → Ti Tốp & Hang Sửng Sốt →
+  làng chài Cửa Vạn & Hòn Chó Đá → hoàng hôn ở Hòn Đỉnh Hương → Sun Wheel → thành phố
+  & cầu Bãi Cháy với pháo hoa → đêm khuya thả hoa đăng.
+- Núi đá vôi vẽ chi tiết: ngấn nước bị sóng khoét ở chân đá, vệt đá chảy, mảng
+  vàng oxit, cây bám vách, bóng phản chiếu và ánh viền theo hướng mặt trời/mặt trăng.
+- Điều khiển: tạm dừng (Space), chuyển cảnh (← →), tốc độ ½×–4×, kéo thanh thời
+  gian, ẩn bảng (H). Có thể mở thẳng một cảnh bằng `#binh-minh`, `#truong-hoc`,
+  `#thanh-pho`, `#dem-khuya`…
+
 ## 🚀 Chạy thử
 
 ### Cách 1 — Không cần cài gì (khuyên dùng nếu chưa có máy/dev tools)
